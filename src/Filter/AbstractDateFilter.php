@@ -91,7 +91,7 @@ abstract class AbstractDateFilter extends Filter
             }
 
             // default type for range filter
-            $data['type'] = !isset($data['type']) || !is_numeric($data['type']) ? DateRangeType::TYPE_BETWEEN : $data['type'];
+            $data['type'] = !isset($data['type']) || !is_numeric($data['type']) ? DateRangeOperatorType::TYPE_BETWEEN : $data['type'];
 
             $innerQuery = $queryBuilder
                 ->query()
@@ -205,8 +205,8 @@ abstract class AbstractDateFilter extends Filter
             DateOperatorType::TYPE_GREATER_THAN => 'gt',
             DateOperatorType::TYPE_LESS_EQUAL => 'lte',
             DateOperatorType::TYPE_LESS_THAN => 'lt',
-            DateOperatorType::TYPE_NULL => 'missing',
-            DateOperatorType::TYPE_NOT_NULL => 'exists',
+            //DateOperatorType::TYPE_NULL => 'missing',
+            //DateOperatorType::TYPE_NOT_NULL => 'exists',
         ];
 
         return $choices[$type] ?? '=';
