@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Builder;
 
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\Admin\FieldDescriptionInterface;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Builder\DatagridBuilderInterface;
 use Sonata\AdminBundle\Datagrid\DatagridInterface;
-use Sonata\AdminSearchBundle\Datagrid\Datagrid;
+use Sonata\AdminBundle\Datagrid\Datagrid;
 
 /**
  * Admin search bundle wraps existing datagrid builder (orm, odm, phpcr)
@@ -39,7 +39,7 @@ class DatagridBuilder implements DatagridBuilderInterface
     /**
      * {@inheritdoc}
      */
-    public function fixFieldDescription(AdminInterface $admin, FieldDescriptionInterface $fieldDescription)
+    public function fixFieldDescription(FieldDescriptionInterface $fieldDescription): void
     {
         // Nothing todo
     }
@@ -47,20 +47,19 @@ class DatagridBuilder implements DatagridBuilderInterface
     /**
      * {@inheritdoc}
      */
-    public function addFilter(DatagridInterface $datagrid, $type, FieldDescriptionInterface $fieldDescription, AdminInterface $admin)
+    public function addFilter(DatagridInterface $datagrid, ?string $type, FieldDescriptionInterface $fieldDescription): void
     {
-        return $this->getAdminDatagridBuilder($admin, $datagrid instanceof Datagrid)->addFilter(
+        $this->getAdminDatagridBuilder($fieldDescription->getAdmin())->addFilter(
             $datagrid,
             $type,
             $fieldDescription,
-            $admin
         );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBaseDatagrid(AdminInterface $admin, array $values = [])
+    public function getBaseDatagrid(AdminInterface $admin, array $values = []): DatagridInterface
     {
         // Check if we use smart or original datagrid builder
         $smartDatagrid = $this->smartDatagridBuilder->isSmart($admin, $values);

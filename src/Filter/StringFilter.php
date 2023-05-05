@@ -67,7 +67,7 @@ class StringFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions()
+    public function getDefaultOptions(): array
     {
         return [];
     }
@@ -75,7 +75,7 @@ class StringFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    public function getRenderSettings()
+    public function getRenderSettings(): array
     {
         return [ChoiceType::class, [
             'field_type' => $this->getFieldType(),

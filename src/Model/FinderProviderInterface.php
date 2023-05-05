@@ -13,26 +13,27 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Model;
 
+use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Sonata\AdminBundle\Admin\AdminInterface;
 
 interface FinderProviderInterface
 {
     /**
-     * @param Sonata\AdminBundle\Admin\AdminInterface $admin Sonata Admin interface
+     * @param AdminInterface $admin Sonata Admin interface
      *
-     * @return FOS\ElasticaBundle\Finder\PaginatedFinderInterface
+     * @return PaginatedFinderInterface
      */
     public function getFinderByAdmin(AdminInterface $admin);
 
     /**
      * @param string $adminId Sonata Admin service id
      *
-     * @return FOS\ElasticaBundle\Finder\PaginatedFinderInterface
+     * @return PaginatedFinderInterface
      */
     public function getFinderByAdminId($adminId);
 
     /**
-     * @param Sonata\AdminBundle\Admin\AdminInterface $admin Sonata Admin interface
+     * @param AdminInterface $admin Sonata Admin interface
      *
      * @return string
      */
@@ -46,7 +47,7 @@ interface FinderProviderInterface
     public function getFinderIdByAdminId($adminId);
 
     /**
-     * @param Sonata\AdminBundle\Admin\AdminInterface $admin Sonata Admin interface
+     * @param AdminInterface $admin Sonata Admin interface
      *
      * @return array
      */

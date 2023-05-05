@@ -151,7 +151,7 @@ abstract class AbstractDateFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions()
+    public function getDefaultOptions(): array
     {
         return [
             'input_type' => SymfonyDateTimeType::class,
@@ -161,7 +161,7 @@ abstract class AbstractDateFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    public function getRenderSettings()
+    public function getRenderSettings(): array
     {
         return [
             $this->getFilterTypeClass(),

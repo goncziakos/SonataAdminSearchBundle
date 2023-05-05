@@ -15,6 +15,7 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Sonata\AdminBundle\Filter\Filter as BaseFilter;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 
 abstract class Filter extends BaseFilter
 {
@@ -23,22 +24,13 @@ abstract class Filter extends BaseFilter
     /**
      * {@inheritdoc}
      */
-    public function apply($queryBuilder, $value)
+    public function apply(ProxyQueryInterface $query, FilterData $filterData): void
     {
-        $this->value = $value;
-        if (\is_array($value) && \array_key_exists('value', $value)) {
-            [$alias, $field] = $this->association($queryBuilder, $value);
+        if ($filterData->hasValue()) {
+            [$alias, $field] = $this->association($query, $filterData->getValue());
 
-            $this->filter($queryBuilder, $alias, $field, $value);
+            $this->filter($query, $alias, $field, ['type' => $filterData->getType(), 'value' => $filterData->getValue()]);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isActive()
-    {
-        return $this->active;
     }
 
     /**

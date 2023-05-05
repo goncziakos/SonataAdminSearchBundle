@@ -19,25 +19,13 @@ use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 
 class ElasticaProxyQuery implements ProxyQueryInterface
 {
-    /**
-     * @var array
-     */
-    protected $sortBy;
+    protected ?string $sortBy = null;
 
-    /**
-     * @var array
-     */
-    protected $sortOrder;
+    protected ?string $sortOrder = null;
 
-    /**
-     * @var int
-     */
-    protected $firstResult;
+    protected ?int $firstResult = null;
 
-    /**
-     * @var int
-     */
-    protected $maxResults;
+    protected ?int $maxResults = null;
 
     /**
      * @var array
@@ -89,7 +77,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function setSortBy($parentAssociationMappings, $fieldMapping)
+    public function setSortBy(array $parentAssociationMappings, array $fieldMapping): self
     {
         $alias = '';
 
@@ -105,7 +93,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function getSortBy()
+    public function getSortBy(): ?string
     {
         return $this->sortBy;
     }
@@ -113,7 +101,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function setSortOrder($sortOrder)
+    public function setSortOrder(string $sortOrder): self
     {
         $this->sortOrder = $sortOrder;
 
@@ -123,7 +111,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function getSortOrder()
+    public function getSortOrder(): ?string
     {
         return $this->sortOrder;
     }
@@ -131,7 +119,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function setFirstResult($firstResult)
+    public function setFirstResult(?int $firstResult): self
     {
         $this->firstResult = $firstResult;
 
@@ -141,7 +129,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function getFirstResult()
+    public function getFirstResult(): ?int
     {
         return $this->firstResult;
     }
@@ -149,7 +137,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function setMaxResults($maxResults)
+    public function setMaxResults(?int $maxResults): self
     {
         $this->maxResults = $maxResults;
 
@@ -159,7 +147,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function getMaxResults()
+    public function getMaxResults(): ?int
     {
         return $this->maxResults;
     }

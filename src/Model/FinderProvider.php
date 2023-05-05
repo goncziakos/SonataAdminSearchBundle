@@ -14,14 +14,15 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Model;
 
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 class FinderProvider implements FinderProviderInterface
 {
     protected $container;
     protected $adminFinderServices; // admin_id => array(finder)
 
-    public function __construct(ContainerInterface $container, array $adminFinderServices)
+    public function __construct(
+        ContainerInterface $container, array $adminFinderServices)
     {
         $this->container = $container;
         $this->adminFinderServices = $adminFinderServices;

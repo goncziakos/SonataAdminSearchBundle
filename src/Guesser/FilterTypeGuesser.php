@@ -14,8 +14,14 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Guesser;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Sonata\AdminBundle\Guesser\TypeGuesserInterface;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
+use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
 use Sonata\AdminBundle\Model\ModelManagerInterface;
+use Sonata\AdminSearchBundle\Filter\BooleanFilter;
+use Sonata\AdminSearchBundle\Filter\DateFilter;
+use Sonata\AdminSearchBundle\Filter\DateTimeFilter;
+use Sonata\AdminSearchBundle\Filter\NumberFilter;
+use Sonata\AdminSearchBundle\Filter\StringFilter;
 use Sonata\Form\Type\BooleanType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -27,22 +33,15 @@ class FilterTypeGuesser implements TypeGuesserInterface
     /**
      * {@inheritdoc}
      */
-    public function guessType($class, $property, ModelManagerInterface $modelManager)
+    public function guess(FieldDescriptionInterface $fieldDescription): ?TypeGuess
     {
-        if (!$ret = $modelManager->getParentMetadataForProperty($class, $property, $modelManager)) {
-            return false;
-        }
-
         $options = [
+            'field_name' => $fieldDescription->getFieldName(),
+            'parent_association_mappings' => $fieldDescription->getParentAssociationMappings(),
             'field_type' => null,
             'field_options' => [],
             'options' => [],
         ];
-
-        [$metadata, $propertyName, $parentAssociationMappings] = $ret;
-
-        $options['parent_association_mappings'] = $parentAssociationMappings;
-
         // FIXME: Try to implement association using elastica
         /*
         if ($metadata->hasAssociation($propertyName)) {
@@ -69,40 +68,38 @@ class FilterTypeGuesser implements TypeGuesserInterface
             }
         }*/
 
-        $options['field_name'] = $metadata->fieldMappings[$propertyName]['fieldName'];
-
-        switch ($metadata->getTypeOfField($propertyName)) {
+        switch ($fieldDescription->getMappingType()) {
             case 'boolean':
                 $options['field_type'] = BooleanType::class;
                 $options['field_options'] = [];
 
-                return new TypeGuess('sonata_search_elastica_boolean', $options, Guess::HIGH_CONFIDENCE);
+                return new TypeGuess(BooleanFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'datetime':
             case 'vardatetime':
             case 'datetimetz':
-                return new TypeGuess('sonata_search_elastica_datetime', $options, Guess::HIGH_CONFIDENCE);
+                return new TypeGuess(DateTimeFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'date':
-                return new TypeGuess('sonata_search_elastica_date', $options, Guess::HIGH_CONFIDENCE);
+                return new TypeGuess(DateFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'decimal':
             case 'float':
                 $options['field_type'] = NumberType::class;
 
-                return new TypeGuess('sonata_search_elastica_number', $options, Guess::MEDIUM_CONFIDENCE);
+                return new TypeGuess(NumberFilter::class, $options, Guess::MEDIUM_CONFIDENCE);
             case 'integer':
             case 'bigint':
             case 'smallint':
                 $options['field_type'] = NumberType::class;
 
-                return new TypeGuess('sonata_search_elastica_number', $options, Guess::MEDIUM_CONFIDENCE);
+                return new TypeGuess(NumberFilter::class, $options, Guess::MEDIUM_CONFIDENCE);
             case 'string':
             case 'text':
                 $options['field_type'] = TextType::class;
 
-                return new TypeGuess('sonata_search_elastica_string', $options, Guess::MEDIUM_CONFIDENCE);
+                return new TypeGuess(StringFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'time':
-                return new TypeGuess('sonata_search_elastica_time', $options, Guess::HIGH_CONFIDENCE);
+                return new TypeGuess(DateTimeFilter::class, $options, Guess::HIGH_CONFIDENCE);
             default:
-                return new TypeGuess('sonata_search_elastica_string', $options, Guess::LOW_CONFIDENCE);
+                return new TypeGuess(StringFilter::class, $options, Guess::LOW_CONFIDENCE);
         }
     }
 }

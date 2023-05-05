@@ -22,46 +22,21 @@ class Pager extends BasePager
     /**
      * {@inheritdoc}
      */
-    public function computeNbResult()
+    public function init(): void
     {
-        return $this->getPaginator()->getTotalHits();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getResults()
-    {
-        return $this->getPaginator()->getResults(
-            $this->getQuery()->getFirstResult(),
-            $this->getQuery()->getMaxResults()
-        )->toArray();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
-    {
-        $this->resetIterator();
-
-        $this->getQuery()->setFirstResult(null);
-        $this->getQuery()->setMaxResults(null);
-
-        if (\count($this->getParameters()) > 0) {
-            $this->getQuery()->setParameters($this->getParameters());
-        }
+        $query = $this->getQuery();
+        $query->setFirstResult(null);
+        $query->setMaxResults($this->getMaxPerPage());
 
         if (0 === $this->getPage() || 0 === $this->getMaxPerPage()) {
             $this->setLastPage(0);
-            $this->setNbResults($this->computeNbResult());
-        } else {
+        } elseif (0 === $this->countResults()) {
+            $this->setLastPage(1);
+        }  else {
             $offset = ($this->getPage() - 1) * $this->getMaxPerPage();
-
-            $this->getQuery()->setFirstResult($offset);
-            $this->getQuery()->setMaxResults($this->getMaxPerPage());
-            $this->setNbResults($this->computeNbResult());
-            $this->setLastPage(ceil($this->getNbResults() / $this->getMaxPerPage()));
+            $query->setFirstResult($offset);
+            $query->setMaxResults($this->getMaxPerPage());
+            $this->setLastPage((int) ceil($this->countResults() / $this->getMaxPerPage()));
         }
     }
 
@@ -72,5 +47,18 @@ class Pager extends BasePager
         }
 
         return $this->paginator;
+    }
+
+    public function getCurrentPageResults() : iterable
+    {
+        return $this->getPaginator()->getResults(
+            $this->getQuery()->getFirstResult(),
+            $this->getQuery()->getMaxResults()
+        )->toArray();
+    }
+
+    public function countResults() : int
+    {
+        return $this->getPaginator()->getTotalHits();
     }
 }
