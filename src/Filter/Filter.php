@@ -28,7 +28,7 @@ abstract class Filter extends BaseFilter
     {
         if ($filterData->hasValue()) {
             [$alias, $field] = $this->association($query, $filterData->getValue());
-
+            $this->setActive(true);
             $this->filter($query, $alias, $field, ['type' => $filterData->getType(), 'value' => $filterData->getValue()]);
         }
     }
