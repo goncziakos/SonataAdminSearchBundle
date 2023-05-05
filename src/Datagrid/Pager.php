@@ -28,11 +28,11 @@ class Pager extends BasePager
         $query->setFirstResult(null);
         $query->setMaxResults($this->getMaxPerPage());
 
-        if (0 === $this->getPage() || 0 === $this->getMaxPerPage()) {
+        if ($this->getPage() === 0 || $this->getMaxPerPage() === 0) {
             $this->setLastPage(0);
-        } elseif (0 === $this->countResults()) {
+        } elseif ($this->countResults() === 0) {
             $this->setLastPage(1);
-        }  else {
+        } else {
             $offset = ($this->getPage() - 1) * $this->getMaxPerPage();
             $query->setFirstResult($offset);
             $query->setMaxResults($this->getMaxPerPage());
@@ -40,16 +40,7 @@ class Pager extends BasePager
         }
     }
 
-    protected function getPaginator()
-    {
-        if (null === $this->paginator) {
-            $this->paginator = $this->getQuery()->execute();
-        }
-
-        return $this->paginator;
-    }
-
-    public function getCurrentPageResults() : iterable
+    public function getCurrentPageResults(): iterable
     {
         return $this->getPaginator()->getResults(
             $this->getQuery()->getFirstResult(),
@@ -57,8 +48,17 @@ class Pager extends BasePager
         )->toArray();
     }
 
-    public function countResults() : int
+    public function countResults(): int
     {
         return $this->getPaginator()->getTotalHits();
+    }
+
+    protected function getPaginator()
+    {
+        if ($this->paginator === null) {
+            $this->paginator = $this->getQuery()->execute();
+        }
+
+        return $this->paginator;
     }
 }

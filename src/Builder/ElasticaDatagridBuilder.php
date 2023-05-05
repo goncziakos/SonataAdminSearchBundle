@@ -15,12 +15,12 @@ namespace Sonata\AdminSearchBundle\Builder;
 
 use FOS\ElasticaBundle\Configuration\ManagerInterface;
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Builder\DatagridBuilderInterface;
-use Sonata\AdminBundle\Datagrid\DatagridInterface;
-use Sonata\AdminBundle\Filter\FilterFactoryInterface;
-use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
 use Sonata\AdminBundle\Datagrid\Datagrid;
+use Sonata\AdminBundle\Datagrid\DatagridInterface;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
+use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
+use Sonata\AdminBundle\Filter\FilterFactoryInterface;
 use Sonata\AdminSearchBundle\Datagrid\Pager;
 use Sonata\AdminSearchBundle\Model\FinderProviderInterface;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
@@ -58,7 +58,7 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
     public function addFilter(DatagridInterface $datagrid, ?string $type, FieldDescriptionInterface $fieldDescription): void
     {
         // Try to wrap all types to search types
-        if (null === $type) {
+        if ($type === null) {
             $guessType = $this->guesser->guess($fieldDescription);
             $type = $guessType->getType();
             $fieldDescription->setType($type);
@@ -78,16 +78,16 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
             $fieldDescription->setType($type);
         }
         $this->fixFieldDescription($fieldDescription);
-        //$admin = $fieldDescription->getParent();
-        //$admin->addFilterFieldDescription($fieldDescription->getName(), $fieldDescription);
+        // $admin = $fieldDescription->getParent();
+        // $admin->addFilterFieldDescription($fieldDescription->getName(), $fieldDescription);
 
         $fieldDescription->mergeOption('field_options', ['required' => false]);
         $filter = $this->filterFactory->create($fieldDescription->getName(), $type, $fieldDescription->getOptions());
 
-        if (false !== $filter->getLabel() && !$filter->getLabel()) {
-            //$filter->setLabel(
+        if ($filter->getLabel() !== false && !$filter->getLabel()) {
+            // $filter->setLabel(
             //    $admin->getLabelTranslatorStrategy()->getLabel($fieldDescription->getName(), 'filter', 'label')
-            //);
+            // );
         }
 
         $datagrid->addFilter($filter);
@@ -131,6 +131,9 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
 
     /**
      * Returns true if this datagrid builder can process these values.
+     *
+     * @param AdminInterface $admin
+     * @param array          $values
      */
     public function isSmart(AdminInterface $admin, array $values = [])
     {
@@ -181,7 +184,7 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
                 );
 
                 [$metadata, $propertyName, $parentAssociationMappings] = $ret;
-                //Case if a filter is used in the filter but not linked to the ModelManager ("mapped" = false ) case
+                // Case if a filter is used in the filter but not linked to the ModelManager ("mapped" = false ) case
                 if (!$metadata->hasField($key)) {
                     break;
                 }

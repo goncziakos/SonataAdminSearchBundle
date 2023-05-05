@@ -44,11 +44,12 @@ abstract class Filter extends BaseFilter
     }
 
     /**
-     * @param mixed $parameter
+     * @param mixed               $parameter
+     * @param ProxyQueryInterface $queryBuilder
      */
     protected function applyWhere(ProxyQueryInterface $queryBuilder, $parameter)
     {
-        if (self::CONDITION_OR === $this->getCondition()) {
+        if ($this->getCondition() === self::CONDITION_OR) {
             $queryBuilder->orWhere($parameter);
         } else {
             $queryBuilder->andWhere($parameter);
@@ -59,12 +60,14 @@ abstract class Filter extends BaseFilter
     }
 
     /**
+     * @param ProxyQueryInterface $queryBuilder
+     *
      * @return string
      */
     protected function getNewParameterName(ProxyQueryInterface $queryBuilder)
     {
         // dots are not accepted in a DQL identifier so replace them
         // by underscores.
-        return str_replace('.', '_', $this->getName()).'_'.$queryBuilder->getUniqueParameterId();
+        return str_replace('.', '_', $this->getName()) . '_' . $queryBuilder->getUniqueParameterId();
     }
 }

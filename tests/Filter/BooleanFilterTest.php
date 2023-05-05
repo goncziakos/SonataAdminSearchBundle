@@ -15,6 +15,7 @@ namespace Sonata\AdminSearchBundle\Tests\Filter;
 
 use FOS\ElasticaBundle\Finder\TransformedFinder;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Sonata\AdminSearchBundle\Filter\BooleanFilter;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
 use Sonata\Form\Type\BooleanType;
@@ -40,7 +41,7 @@ class BooleanFilterTest extends TestCase
 
         $filter->filter($this->proxyQuery, 'filter', 'foo', ['value' => $value, 'type' => null]);
 
-        $queryReflection = new \ReflectionClass($this->proxyQuery);
+        $queryReflection = new ReflectionClass($this->proxyQuery);
         $queryProperty = $queryReflection->getProperty('query');
 
         $queryProperty->setAccessible(true);
@@ -57,7 +58,7 @@ class BooleanFilterTest extends TestCase
 
         $filter->filter($this->proxyQuery, 'filter', 'foo', ['value' => $value, 'type' => null]);
 
-        $queryReflection = new \ReflectionClass($this->proxyQuery);
+        $queryReflection = new ReflectionClass($this->proxyQuery);
         $queryProperty = $queryReflection->getProperty('query');
 
         $queryProperty->setAccessible(true);

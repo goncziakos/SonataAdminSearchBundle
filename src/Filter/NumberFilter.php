@@ -34,7 +34,7 @@ class NumberFilter extends Filter
 
         $queryBuilder = new QueryBuilder();
 
-        if (false === $operator) {
+        if ($operator === false) {
             // Match query to get equality
             $innerQuery = $queryBuilder
                 ->query()
@@ -65,9 +65,9 @@ class NumberFilter extends Filter
     public function getRenderSettings(): array
     {
         return [NumberType::class, [
-            'field_type' => $this->getFieldType(),
+            'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
-            'label' => $this->getLabel(),
+            'label'         => $this->getLabel(),
         ]];
     }
 
@@ -79,11 +79,11 @@ class NumberFilter extends Filter
     private function getOperator($type)
     {
         $choices = [
-            NumberOperatorType::TYPE_EQUAL => false,
+            NumberOperatorType::TYPE_EQUAL         => false,
             NumberOperatorType::TYPE_GREATER_EQUAL => 'gte',
-            NumberOperatorType::TYPE_GREATER_THAN => 'gt',
-            NumberOperatorType::TYPE_LESS_EQUAL => 'lte',
-            NumberOperatorType::TYPE_LESS_THAN => 'lt',
+            NumberOperatorType::TYPE_GREATER_THAN  => 'gt',
+            NumberOperatorType::TYPE_LESS_EQUAL    => 'lte',
+            NumberOperatorType::TYPE_LESS_THAN     => 'lt',
         ];
 
         return $choices[$type] ?? false;

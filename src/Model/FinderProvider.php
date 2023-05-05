@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Model;
 
-use Sonata\AdminBundle\Admin\AdminInterface;
 use Psr\Container\ContainerInterface;
+use Sonata\AdminBundle\Admin\AdminInterface;
 
 class FinderProvider implements FinderProviderInterface
 {
@@ -22,7 +22,9 @@ class FinderProvider implements FinderProviderInterface
     protected $adminFinderServices; // admin_id => array(finder)
 
     public function __construct(
-        ContainerInterface $container, array $adminFinderServices)
+        ContainerInterface $container,
+        array $adminFinderServices
+    )
     {
         $this->container = $container;
         $this->adminFinderServices = $adminFinderServices;

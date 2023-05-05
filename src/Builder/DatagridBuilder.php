@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Builder;
 
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Builder\DatagridBuilderInterface;
-use Sonata\AdminBundle\Datagrid\DatagridInterface;
 use Sonata\AdminBundle\Datagrid\Datagrid;
+use Sonata\AdminBundle\Datagrid\DatagridInterface;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 
 /**
  * Admin search bundle wraps existing datagrid builder (orm, odm, phpcr)

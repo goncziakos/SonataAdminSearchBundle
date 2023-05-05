@@ -16,6 +16,7 @@ namespace Sonata\AdminSearchBundle\Tests\ProxyQuery;
 use FOS\ElasticaBundle\Finder\TransformedFinder;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
 
 class ElasticaProxyQueryTest extends TestCase
@@ -31,8 +32,8 @@ class ElasticaProxyQueryTest extends TestCase
     protected $proxyQuery;
 
     protected $fieldMapping = [
-        'fieldName' => 'name',
-        'type' => 'string',
+        'fieldName'  => 'name',
+        'type'       => 'string',
         'columnName' => 'name',
     ];
 
@@ -84,7 +85,7 @@ class ElasticaProxyQueryTest extends TestCase
 
         $this->proxyQuery->execute();
 
-        $queryReflection = new \ReflectionClass($this->proxyQuery);
+        $queryReflection = new ReflectionClass($this->proxyQuery);
         $queryProperty = $queryReflection->getProperty('query');
 
         $queryProperty->setAccessible(true);

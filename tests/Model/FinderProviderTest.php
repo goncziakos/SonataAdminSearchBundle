@@ -16,6 +16,7 @@ namespace Sonata\AdminSearchBundle\Tests\Model;
 use PHPUnit\Framework\TestCase;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminSearchBundle\Model\FinderProvider;
+use stdClass;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class FinderProviderTest extends TestCase
@@ -32,7 +33,7 @@ class FinderProviderTest extends TestCase
                 ],
             ]
         );
-        $finder = new \StdClass();
+        $finder = new stdClass();
 
         $container->expects(static::once())
             ->method('get')

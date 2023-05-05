@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Filter;
 
+use RuntimeException;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -25,7 +26,7 @@ class CallbackFilter extends Filter
     public function filter(ProxyQueryInterface $query, $alias, $field, $data)
     {
         if (!\is_callable($this->getOption('callback'))) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf('Please provide a valid callback option "filter" for field "%s"', $this->getName())
             );
         }
@@ -39,9 +40,9 @@ class CallbackFilter extends Filter
     public function getDefaultOptions(): array
     {
         return [
-            'callback' => null,
-            'field_type' => $this->getFieldType(),
-            'operator_type' => HiddenType::class,
+            'callback'         => null,
+            'field_type'       => $this->getFieldType(),
+            'operator_type'    => HiddenType::class,
             'operator_options' => [],
         ];
     }
@@ -52,11 +53,11 @@ class CallbackFilter extends Filter
     public function getRenderSettings(): array
     {
         return [DefaultType::class, [
-            'field_type' => $this->getFieldType(),
-            'field_options' => $this->getFieldOptions(),
-            'operator_type' => $this->getOption('operator_type'),
+            'field_type'       => $this->getFieldType(),
+            'field_options'    => $this->getFieldOptions(),
+            'operator_type'    => $this->getOption('operator_type'),
             'operator_options' => $this->getOption('operator_options'),
-            'label' => $this->getLabel(),
+            'label'            => $this->getLabel(),
         ]];
     }
 

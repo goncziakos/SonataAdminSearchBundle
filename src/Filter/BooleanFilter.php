@@ -37,10 +37,10 @@ class BooleanFilter extends Filter
                     continue;
                 }
 
-                $values[] = (BooleanType::TYPE_YES === $v);
+                $values[] = ($v === BooleanType::TYPE_YES);
             }
 
-            if (0 === \count($values)) {
+            if (\count($values) === 0) {
                 return;
             }
 
@@ -59,7 +59,7 @@ class BooleanFilter extends Filter
             $innerQuery = $queryBuilder
                 ->query()
                 ->term([
-                    $field => (BooleanType::TYPE_YES === $data['value']),
+                    $field => ($data['value'] === BooleanType::TYPE_YES),
                 ]);
 
             $query->addMust($innerQuery);
@@ -80,11 +80,11 @@ class BooleanFilter extends Filter
     public function getRenderSettings(): array
     {
         return [DefaultType::class, [
-            'field_type' => $this->getFieldType(),
-            'field_options' => $this->getFieldOptions(),
-            'operator_type' => HiddenType::class,
+            'field_type'       => $this->getFieldType(),
+            'field_options'    => $this->getFieldOptions(),
+            'operator_type'    => HiddenType::class,
             'operator_options' => [],
-            'label' => $this->getLabel(),
+            'label'            => $this->getLabel(),
         ]];
     }
 }

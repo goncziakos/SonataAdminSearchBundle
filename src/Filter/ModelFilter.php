@@ -15,6 +15,7 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use RuntimeException;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
 use Sonata\Form\Type\EqualType;
@@ -48,11 +49,11 @@ class ModelFilter extends Filter
     public function getDefaultOptions(): array
     {
         return [
-            'mapping_type' => false,
-            'field_name' => false,
-            'field_type' => EntityType::class,
-            'field_options' => [],
-            'operator_type' => EqualType::class,
+            'mapping_type'     => false,
+            'field_name'       => false,
+            'field_type'       => EntityType::class,
+            'field_options'    => [],
+            'operator_type'    => EqualType::class,
             'operator_options' => [],
         ];
     }
@@ -63,11 +64,11 @@ class ModelFilter extends Filter
     public function getRenderSettings(): array
     {
         return [DefaultType::class, [
-            'field_type' => $this->getFieldType(),
-            'field_options' => $this->getFieldOptions(),
-            'operator_type' => $this->getOption('operator_type'),
+            'field_type'       => $this->getFieldType(),
+            'field_options'    => $this->getFieldOptions(),
+            'operator_type'    => $this->getOption('operator_type'),
             'operator_options' => $this->getOption('operator_options'),
-            'label' => $this->getLabel(),
+            'label'            => $this->getLabel(),
         ]];
     }
 
@@ -75,31 +76,33 @@ class ModelFilter extends Filter
      * For the record, the $alias value is provided by the association method (and the entity join method)
      *  so the field value is not used here.
      *
-     * @param string $alias
-     * @param mixed  $data
+     * @param string              $alias
+     * @param mixed               $data
+     * @param ProxyQueryInterface $queryBuilder
      *
      * @return mixed
      */
     protected function handleMultiple(ProxyQueryInterface $queryBuilder, $alias, $data)
     {
-        if (0 === \count($data['value'])) {
+        if (\count($data['value']) === 0) {
             return;
         }
 
         $parameterName = $this->getNewParameterName($queryBuilder);
 
-        if (isset($data['type']) && EqualType::TYPE_IS_NOT_EQUAL === $data['type']) {
-            $this->applyWhere($queryBuilder, $queryBuilder->expr()->notIn($alias, ':'.$parameterName));
+        if (isset($data['type']) && $data['type'] === EqualType::TYPE_IS_NOT_EQUAL) {
+            $this->applyWhere($queryBuilder, $queryBuilder->expr()->notIn($alias, ':' . $parameterName));
         } else {
-            $this->applyWhere($queryBuilder, $queryBuilder->expr()->in($alias, ':'.$parameterName));
+            $this->applyWhere($queryBuilder, $queryBuilder->expr()->in($alias, ':' . $parameterName));
         }
 
         $queryBuilder->setParameter($parameterName, $data['value']);
     }
 
     /**
-     * @param string $alias
-     * @param mixed  $data
+     * @param string              $alias
+     * @param mixed               $data
+     * @param ProxyQueryInterface $queryBuilder
      *
      * @return mixed
      */
@@ -111,7 +114,7 @@ class ModelFilter extends Filter
 
         $parameterName = $this->getNewParameterName($queryBuilder);
 
-        if (isset($data['type']) && EqualType::TYPE_IS_NOT_EQUAL === $data['type']) {
+        if (isset($data['type']) && $data['type'] === EqualType::TYPE_IS_NOT_EQUAL) {
             $this->applyWhere($queryBuilder, sprintf('%s != :%s', $alias, $parameterName));
         } else {
             $this->applyWhere($queryBuilder, sprintf('%s = :%s', $alias, $parameterName));
@@ -133,7 +136,7 @@ class ModelFilter extends Filter
         ];
 
         if (!\in_array($this->getOption('mapping_type'), $types, true)) {
-            throw new \RunTimeException('Invalid mapping type');
+            throw new RuntimeException('Invalid mapping type');
         }
 
         $associationMappings = $this->getParentAssociationMappings();

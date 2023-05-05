@@ -40,14 +40,14 @@ class ConfigurationTest extends TestCase
             [
                 ['admin_finder_services' => [
                     'my_admin' => [
-                        'finder' => 42,
+                        'finder'  => 42,
                         'actions' => ['list'],
                     ],
                 ]],
             ],
             ['admin_finder_services' => [
                 'my_admin' => [
-                    'finder' => 42,
+                    'finder'  => 42,
                     'actions' => ['list'],
                 ],
             ]]

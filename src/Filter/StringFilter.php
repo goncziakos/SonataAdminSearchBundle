@@ -32,7 +32,7 @@ class StringFilter extends Filter
 
         $data['value'] = trim($data['value']);
 
-        if ('' === $data['value']) {
+        if ($data['value'] === '') {
             return;
         }
 
@@ -43,21 +43,21 @@ class StringFilter extends Filter
         // Create a query that match terms (indepedent of terms order) or a phrase
         $queryBuilder = new QueryBuilder();
 
-        if ('match_phrase' === $secondOperator) {
+        if ($secondOperator === 'match_phrase') {
             $innerQuery = new MatchPhrase($field, [
-                'query' => str_replace(['\\', '"'], ['\\\\', '\"'], $data['value']),
+                'query'    => str_replace(['\\', '"'], ['\\\\', '\"'], $data['value']),
                 'operator' => 'and',
             ]);
         } else {
             $innerQuery = $queryBuilder
                 ->query()
                 ->match($field, [
-                    'query' => str_replace(['\\', '"'], ['\\\\', '\"'], $data['value']),
+                    'query'    => str_replace(['\\', '"'], ['\\\\', '\"'], $data['value']),
                     'operator' => 'and',
                 ]);
         }
 
-        if ('must' === $firstOperator) {
+        if ($firstOperator === 'must') {
             $query->addMust($innerQuery);
         } else {
             $query->addMustNot($innerQuery);
@@ -78,9 +78,9 @@ class StringFilter extends Filter
     public function getRenderSettings(): array
     {
         return [ChoiceType::class, [
-            'field_type' => $this->getFieldType(),
+            'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
-            'label' => $this->getLabel(),
+            'label'         => $this->getLabel(),
         ]];
     }
 
@@ -92,9 +92,9 @@ class StringFilter extends Filter
     private function getOperators($type)
     {
         $choices = [
-            ContainsOperatorType::TYPE_CONTAINS => ['must', 'match'],
+            ContainsOperatorType::TYPE_CONTAINS     => ['must', 'match'],
             ContainsOperatorType::TYPE_NOT_CONTAINS => ['must_not', 'match'],
-            ContainsOperatorType::TYPE_EQUAL => ['must', 'match_phrase'],
+            ContainsOperatorType::TYPE_EQUAL        => ['must', 'match_phrase'],
         ];
 
         return $choices[$type] ?? false;

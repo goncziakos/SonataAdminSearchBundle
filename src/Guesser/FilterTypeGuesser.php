@@ -16,7 +16,6 @@ namespace Sonata\AdminSearchBundle\Guesser;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
-use Sonata\AdminBundle\Model\ModelManagerInterface;
 use Sonata\AdminSearchBundle\Filter\BooleanFilter;
 use Sonata\AdminSearchBundle\Filter\DateFilter;
 use Sonata\AdminSearchBundle\Filter\DateTimeFilter;
@@ -36,11 +35,11 @@ class FilterTypeGuesser implements TypeGuesserInterface
     public function guess(FieldDescriptionInterface $fieldDescription): ?TypeGuess
     {
         $options = [
-            'field_name' => $fieldDescription->getFieldName(),
+            'field_name'                  => $fieldDescription->getFieldName(),
             'parent_association_mappings' => $fieldDescription->getParentAssociationMappings(),
-            'field_type' => null,
-            'field_options' => [],
-            'options' => [],
+            'field_type'                  => null,
+            'field_options'               => [],
+            'options'                     => [],
         ];
         // FIXME: Try to implement association using elastica
         /*

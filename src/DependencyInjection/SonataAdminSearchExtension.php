@@ -36,7 +36,7 @@ class SonataAdminSearchExtension extends Extension
         // Load sonata admin search services
         $loader = new Loader\XmlFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../Resources/config')
+            new FileLocator(__DIR__ . '/../Resources/config')
         );
         $loader->load('services.xml');
     }

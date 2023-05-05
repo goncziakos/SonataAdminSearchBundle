@@ -15,6 +15,7 @@ namespace Sonata\AdminSearchBundle\Tests\Filter;
 
 use FOS\ElasticaBundle\Finder\TransformedFinder;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Sonata\AdminSearchBundle\Filter\StringFilter;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
 
@@ -39,7 +40,7 @@ class StringFilterTest extends TestCase
 
         $filter->filter($this->proxyQuery, 'filter', 'foo', ['value' => $value]);
 
-        $queryReflection = new \ReflectionClass($this->proxyQuery);
+        $queryReflection = new ReflectionClass($this->proxyQuery);
         $queryProperty = $queryReflection->getProperty('query');
 
         $queryProperty->setAccessible(true);
@@ -59,7 +60,7 @@ class StringFilterTest extends TestCase
 
         $filter->filter($this->proxyQuery, 'filter', 'foo', ['value' => $value]);
 
-        $queryReflection = new \ReflectionClass($this->proxyQuery);
+        $queryReflection = new ReflectionClass($this->proxyQuery);
         $queryProperty = $queryReflection->getProperty('query');
 
         $queryProperty->setAccessible(true);

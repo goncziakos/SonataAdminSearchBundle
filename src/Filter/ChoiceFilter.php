@@ -35,7 +35,7 @@ class ChoiceFilter extends Filter
         [$firstOperator, $secondOperator] = $this->getOperators((int) $data['type']);
 
         if (\is_array($data['value'])) {
-            if (0 === \count($data['value'])) {
+            if (\count($data['value']) === 0) {
                 return;
             }
 
@@ -48,13 +48,13 @@ class ChoiceFilter extends Filter
                 ->query()
                 ->terms([$field => Util::escapeTerm($data['value'])]);
 
-            if ('must' === $firstOperator) {
+            if ($firstOperator === 'must') {
                 $query->addMust($innerQuery);
             } else {
                 $query->addMustNot($innerQuery);
             }
         } else {
-            if ('' === $data['value'] || null === $data['value'] || false === $data['value'] || 'all' === $data['value']) {
+            if ($data['value'] === '' || $data['value'] === null || $data['value'] === false || $data['value'] === 'all') {
                 return;
             }
 
@@ -63,7 +63,7 @@ class ChoiceFilter extends Filter
                 ->query()
                 ->terms([$field => Util::escapeTerm($data['value'])]);
 
-            if ('must' === $firstOperator) {
+            if ($firstOperator === 'must') {
                 $query->addMust($innerQuery);
             } else {
                 $query->addMustNot($innerQuery);
@@ -86,9 +86,9 @@ class ChoiceFilter extends Filter
     {
         return [DefaultType::class, [
             'operator_type' => EqualType::class,
-            'field_type' => $this->getFieldType(),
+            'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
-            'label' => $this->getLabel(),
+            'label'         => $this->getLabel(),
         ]];
     }
 
@@ -100,7 +100,7 @@ class ChoiceFilter extends Filter
     private function getOperators($type)
     {
         $choices = [
-            ContainsOperatorType::TYPE_CONTAINS => ['must', 'terms'],
+            ContainsOperatorType::TYPE_CONTAINS     => ['must', 'terms'],
             ContainsOperatorType::TYPE_NOT_CONTAINS => ['must_not', 'terms'],
         ];
 

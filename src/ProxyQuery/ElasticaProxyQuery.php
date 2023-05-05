@@ -82,10 +82,10 @@ class ElasticaProxyQuery implements ProxyQueryInterface
         $alias = '';
 
         foreach ((array) $parentAssociationMappings as $associationMapping) {
-            $alias .= $associationMapping['fieldName'].'.';
+            $alias .= $associationMapping['fieldName'] . '.';
         }
 
-        $this->sortBy = $alias.$fieldMapping['fieldName'];
+        $this->sortBy = $alias . $fieldMapping['fieldName'];
 
         return $this;
     }

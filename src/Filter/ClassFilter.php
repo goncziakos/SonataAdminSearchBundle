@@ -30,7 +30,7 @@ class ClassFilter extends Filter
             return;
         }
 
-        if ('' === $data['value']) {
+        if ($data['value'] === '') {
             return;
         }
 
@@ -67,7 +67,7 @@ class ClassFilter extends Filter
     public function getFieldOptions()
     {
         return $this->getOption('choices', [
-            'required' => false,
+            'required'    => false,
             'choice_list' => new ArrayChoiceList(
                 array_values($this->getOption('sub_classes')),
                 array_keys($this->getOption('sub_classes'))
@@ -82,9 +82,9 @@ class ClassFilter extends Filter
     {
         return [DefaultType::class, [
             'operator_type' => EqualType::class,
-            'field_type' => $this->getFieldType(),
+            'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
-            'label' => $this->getLabel(),
+            'label'         => $this->getLabel(),
         ]];
     }
 
@@ -96,7 +96,7 @@ class ClassFilter extends Filter
     private function getOperator($type)
     {
         $choices = [
-            EqualType::TYPE_IS_EQUAL => 'INSTANCE OF',
+            EqualType::TYPE_IS_EQUAL     => 'INSTANCE OF',
             EqualType::TYPE_IS_NOT_EQUAL => 'NOT INSTANCE OF',
         ];
 

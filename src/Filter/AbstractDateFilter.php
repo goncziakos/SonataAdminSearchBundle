@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Filter;
 
+use DateTime;
 use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DateRangeType;
 use Sonata\AdminBundle\Form\Type\Filter\DateTimeType;
 use Sonata\AdminBundle\Form\Type\Operator\DateOperatorType;
 use Sonata\AdminBundle\Form\Type\Operator\DateRangeOperatorType;
@@ -58,13 +58,11 @@ abstract class AbstractDateFilter extends Filter
         $format = \array_key_exists('format', $this->getFieldOptions()) ? $this->getFieldOptions()['format'] : 'c';
         $queryBuilder = new QueryBuilder();
 
-        /*
-         * NEXT_MAJOR: Use ($this instanceof RangeFilterInterface) for if statement, remove deprecated range.
-         */
+        // NEXT_MAJOR: Use ($this instanceof RangeFilterInterface) for if statement, remove deprecated range.
         if (!($range = $this instanceof RangeFilterInterface)) {
             @trigger_error(
                 sprintf(
-                    'Using `range` property is deprecated since version 1.x, will be removed in 2.0.'.
+                    'Using `range` property is deprecated since version 1.x, will be removed in 2.0.' .
                     ' Implement %s instead.',
                     RangeFilterInterface::class
                 ),
@@ -85,9 +83,9 @@ abstract class AbstractDateFilter extends Filter
             }
 
             // transform types
-            if ('timestamp' === $this->getOption('input_type')) {
-                $data['value']['start'] = $data['value']['start'] instanceof \DateTime ? $data['value']['start']->getTimestamp() : 0;
-                $data['value']['end'] = $data['value']['end'] instanceof \DateTime ? $data['value']['end']->getTimestamp() : 0;
+            if ($this->getOption('input_type') === 'timestamp') {
+                $data['value']['start'] = $data['value']['start'] instanceof DateTime ? $data['value']['start']->getTimestamp() : 0;
+                $data['value']['end'] = $data['value']['end'] instanceof DateTime ? $data['value']['end']->getTimestamp() : 0;
             }
 
             // default type for range filter
@@ -100,7 +98,7 @@ abstract class AbstractDateFilter extends Filter
                     'lte' => $data['value']['end']->format($format),
                 ]);
 
-            if (DateRangeOperatorType::TYPE_NOT_BETWEEN === $data['type']) {
+            if ($data['type'] === DateRangeOperatorType::TYPE_NOT_BETWEEN) {
                 $query->addMustNot($innerQuery);
             } else {
                 $query->addMust($innerQuery);
@@ -116,8 +114,8 @@ abstract class AbstractDateFilter extends Filter
             $operator = $this->getOperator($data['type']);
 
             // transform types
-            if ('timestamp' === $this->getOption('input_type')) {
-                $data['value'] = $data['value'] instanceof \DateTime ? $data['value']->getTimestamp() : 0;
+            if ($this->getOption('input_type') === 'timestamp') {
+                $data['value'] = $data['value'] instanceof DateTime ? $data['value']->getTimestamp() : 0;
             }
 
             // null / not null only check for col
@@ -125,7 +123,7 @@ abstract class AbstractDateFilter extends Filter
                 $innerQuery = $queryBuilder
                     ->query()
                     ->exists($field);
-            } elseif ('=' === $operator) {
+            } elseif ($operator === '=') {
                 $innerQuery = $queryBuilder
                     ->query()
                     ->range($field, [
@@ -140,7 +138,7 @@ abstract class AbstractDateFilter extends Filter
                     ]);
             }
 
-            if ('missing' === $operator) {
+            if ($operator === 'missing') {
                 $query->addMustNot($innerQuery);
             } else {
                 $query->addMust($innerQuery);
@@ -166,9 +164,9 @@ abstract class AbstractDateFilter extends Filter
         return [
             $this->getFilterTypeClass(),
             [
-                'field_type' => $this->getFieldType(),
+                'field_type'    => $this->getFieldType(),
                 'field_options' => $this->getFieldOptions(),
-                'label' => $this->getLabel(),
+                'label'         => $this->getLabel(),
             ],
         ];
     }
@@ -181,7 +179,7 @@ abstract class AbstractDateFilter extends Filter
     protected function getFilterTypeClass()
     {
         @trigger_error(
-            __METHOD__.' should be implemented. It will be abstract in 2.0.',
+            __METHOD__ . ' should be implemented. It will be abstract in 2.0.',
             \E_USER_DEPRECATED
         );
 
@@ -200,13 +198,13 @@ abstract class AbstractDateFilter extends Filter
         $type = (int) $type;
 
         $choices = [
-            DateOperatorType::TYPE_EQUAL => '=',
+            DateOperatorType::TYPE_EQUAL         => '=',
             DateOperatorType::TYPE_GREATER_EQUAL => 'gte',
-            DateOperatorType::TYPE_GREATER_THAN => 'gt',
-            DateOperatorType::TYPE_LESS_EQUAL => 'lte',
-            DateOperatorType::TYPE_LESS_THAN => 'lt',
-            //DateOperatorType::TYPE_NULL => 'missing',
-            //DateOperatorType::TYPE_NOT_NULL => 'exists',
+            DateOperatorType::TYPE_GREATER_THAN  => 'gt',
+            DateOperatorType::TYPE_LESS_EQUAL    => 'lte',
+            DateOperatorType::TYPE_LESS_THAN     => 'lt',
+            // DateOperatorType::TYPE_NULL => 'missing',
+            // DateOperatorType::TYPE_NOT_NULL => 'exists',
         ];
 
         return $choices[$type] ?? '=';

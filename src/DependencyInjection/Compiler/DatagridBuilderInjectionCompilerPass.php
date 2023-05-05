@@ -40,7 +40,7 @@ class DatagridBuilderInjectionCompilerPass implements CompilerPassInterface
             $definition = $container->getDefinition($adminId);
 
             foreach ($definition->getMethodCalls() as $call) {
-                if ('setDatagridBuilder' !== $call[0]) {
+                if ($call[0] !== 'setDatagridBuilder') {
                     continue;
                 }
 
