@@ -13,15 +13,19 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Guesser;
 
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
+use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
 use Sonata\AdminSearchBundle\Filter\BooleanFilter;
 use Sonata\AdminSearchBundle\Filter\DateFilter;
 use Sonata\AdminSearchBundle\Filter\DateTimeFilter;
+use Sonata\AdminSearchBundle\Filter\ModelFilter;
 use Sonata\AdminSearchBundle\Filter\NumberFilter;
 use Sonata\AdminSearchBundle\Filter\StringFilter;
 use Sonata\Form\Type\BooleanType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Guess\Guess;
@@ -97,6 +101,18 @@ class FilterTypeGuesser implements TypeGuesserInterface
                 return new TypeGuess(StringFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'time':
                 return new TypeGuess(DateTimeFilter::class, $options, Guess::HIGH_CONFIDENCE);
+            case ClassMetadata::ONE_TO_ONE:
+            case ClassMetadata::ONE_TO_MANY:
+            case ClassMetadata::MANY_TO_ONE:
+            case ClassMetadata::MANY_TO_MANY:
+                $options['operator_type'] = EqualOperatorType::class;
+                $options['mapping_type'] = $fieldDescription->getMappingType();
+                $options['association_mapping'] = $fieldDescription->getAssociationMapping();
+                $options['operator_options'] = [];
+                $options['field_type'] = EntityType::class;
+                $options['field_options'] = ['class' => $fieldDescription->getTargetModel()];
+
+                return new TypeGuess(ModelFilter::class, $options, Guess::HIGH_CONFIDENCE);
             default:
                 return new TypeGuess(StringFilter::class, $options, Guess::LOW_CONFIDENCE);
         }
