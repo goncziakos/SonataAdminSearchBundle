@@ -137,6 +137,8 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
      */
     public function isSmart(AdminInterface $admin, array $values = [])
     {
+        // Все поля должны быть замаплены в эластик, по этому не переживаем об этом
+        return true;
         // first : validate if elastica is asked in the configuration for this action
         $logicalControllerName = $admin->getRequest()->attributes->get('_controller');
         $currentAction = explode(':', $logicalControllerName);
