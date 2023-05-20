@@ -24,8 +24,7 @@ class FinderProvider implements FinderProviderInterface
     public function __construct(
         ContainerInterface $container,
         array $adminFinderServices
-    )
-    {
+    ) {
         $this->container = $container;
         $this->adminFinderServices = $adminFinderServices;
     }
