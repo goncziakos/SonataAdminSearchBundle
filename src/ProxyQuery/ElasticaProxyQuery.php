@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\ProxyQuery;
 
+use Elastica\Query\AbstractQuery;
 use Elastica\Search;
 use FOS\ElasticaBundle\Finder\TransformedFinder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
