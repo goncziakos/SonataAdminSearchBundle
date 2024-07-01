@@ -79,18 +79,16 @@ class FilterTypeGuesser implements TypeGuesserInterface
                 return new TypeGuess(BooleanFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'datetime':
             case 'vardatetime':
+            case 'time':
             case 'datetimetz':
                 return new TypeGuess(DateTimeFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'date':
                 return new TypeGuess(DateFilter::class, $options, Guess::HIGH_CONFIDENCE);
             case 'decimal':
-            case 'float':
-                $options['field_type'] = NumberType::class;
-
-                return new TypeGuess(NumberFilter::class, $options, Guess::MEDIUM_CONFIDENCE);
-            case 'integer':
-            case 'bigint':
             case 'smallint':
+            case 'bigint':
+            case 'integer':
+            case 'float':
                 $options['field_type'] = NumberType::class;
 
                 return new TypeGuess(NumberFilter::class, $options, Guess::MEDIUM_CONFIDENCE);
@@ -99,12 +97,10 @@ class FilterTypeGuesser implements TypeGuesserInterface
                 $options['field_type'] = TextType::class;
 
                 return new TypeGuess(StringFilter::class, $options, Guess::HIGH_CONFIDENCE);
-            case 'time':
-                return new TypeGuess(DateTimeFilter::class, $options, Guess::HIGH_CONFIDENCE);
-            case ClassMetadata::ONE_TO_ONE:
-            case ClassMetadata::ONE_TO_MANY:
-            case ClassMetadata::MANY_TO_ONE:
-            case ClassMetadata::MANY_TO_MANY:
+            case FieldDescriptionInterface::TYPE_ONE_TO_ONE:
+            case FieldDescriptionInterface::TYPE_ONE_TO_MANY:
+            case FieldDescriptionInterface::TYPE_MANY_TO_ONE:
+            case FieldDescriptionInterface::TYPE_MANY_TO_MANY:
                 $options['operator_type'] = EqualOperatorType::class;
                 $options['mapping_type'] = $fieldDescription->getMappingType();
                 $options['association_mapping'] = $fieldDescription->getAssociationMapping();

@@ -18,8 +18,9 @@ use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
 use Sonata\AdminBundle\Form\Type\Filter\ChoiceType;
 use Sonata\AdminBundle\Form\Type\Operator\ContainsOperatorType;
+use Sonata\AdminBundle\Form\Type\Operator\StringOperatorType;
 
-class StringFilter extends Filter
+class   StringFilter extends Filter
 {
     /**
      * {@inheritdoc}
@@ -38,7 +39,7 @@ class StringFilter extends Filter
 
         $data['type'] = !isset($data['type']) ? ContainsOperatorType::TYPE_CONTAINS : $data['type'];
 
-        [$firstOperator, $secondOperator] = $this->getOperators((int) $data['type']);
+        [$firstOperator, $secondOperator] = $this->getOperators($data['type']);
 
         // Create a query that match terms (indepedent of terms order) or a phrase
         $queryBuilder = new QueryBuilder();
@@ -73,6 +74,19 @@ class StringFilter extends Filter
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getFormOptions(): array
+    {
+        return [
+            'field_type' => $this->getFieldType(),
+            'field_options' => $this->getFieldOptions(),
+            'label' => $this->getLabel(),
+            'operator_type' => StringOperatorType::class,
+        ];
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getRenderSettings(): array
@@ -84,12 +98,7 @@ class StringFilter extends Filter
         ]];
     }
 
-    /**
-     * @param string $type
-     *
-     * @return bool
-     */
-    private function getOperators($type)
+    private function getOperators($type): ?array
     {
         $choices = [
             ContainsOperatorType::TYPE_CONTAINS     => ['must', 'match'],
@@ -97,6 +106,6 @@ class StringFilter extends Filter
             ContainsOperatorType::TYPE_EQUAL        => ['must', 'match_phrase'],
         ];
 
-        return $choices[$type] ?? false;
+        return $choices[$type] ?? null;
     }
 }

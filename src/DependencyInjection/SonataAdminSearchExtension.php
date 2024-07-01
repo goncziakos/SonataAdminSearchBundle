@@ -23,7 +23,7 @@ class SonataAdminSearchExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         // Load sonata admin search configuration
         $configuration = new Configuration();

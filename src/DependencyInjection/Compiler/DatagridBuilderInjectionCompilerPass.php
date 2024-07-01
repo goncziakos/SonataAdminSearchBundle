@@ -15,7 +15,6 @@ namespace Sonata\AdminSearchBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -24,7 +23,7 @@ use Symfony\Component\DependencyInjection\Reference;
  */
 class DatagridBuilderInjectionCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if (!$container->hasParameter('sonata.admin.search.admin_finder_services')) {
             return;

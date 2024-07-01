@@ -15,7 +15,6 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
 use Sonata\Form\Type\BooleanType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
@@ -74,17 +73,14 @@ class BooleanFilter extends Filter
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getRenderSettings(): array
+    public function getFormOptions(): array
     {
-        return [DefaultType::class, [
+        return [
             'field_type'       => $this->getFieldType(),
             'field_options'    => $this->getFieldOptions(),
             'operator_type'    => HiddenType::class,
             'operator_options' => [],
             'label'            => $this->getLabel(),
-        ]];
+        ];
     }
 }

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\ProxyQuery;
 
+use Elastica\Query;
 use Elastica\Query\AbstractQuery;
+use Elastica\Query\BoolQuery;
 use Elastica\Search;
 use FOS\ElasticaBundle\Finder\TransformedFinder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
@@ -40,8 +42,8 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     public function __construct(TransformedFinder $finder)
     {
         $this->finder = $finder;
-        $this->query = new \Elastica\Query();
-        $this->boolQuery = new \Elastica\Query\BoolQuery();
+        $this->query = new Query();
+        $this->boolQuery = new BoolQuery();
     }
 
     /**
@@ -78,7 +80,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function setSortBy(array $parentAssociationMappings, array $fieldMapping): self
+    public function setSortBy(?array $parentAssociationMappings, array $fieldMapping): self
     {
         $alias = '';
 
@@ -179,25 +181,23 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     public function addMust($args)
     {
         $this->boolQuery->addMust($args);
-        $this->query = new \Elastica\Query($this->boolQuery);
+        $this->query = new Query($this->boolQuery);
     }
 
     public function addMustNot($args)
     {
         $this->boolQuery->addMustNot($args);
-        $this->query = new \Elastica\Query($this->boolQuery);
+        $this->query = new Query($this->boolQuery);
     }
 
     /**
      * Add should part to query.
      *
      * @param AbstractQuery|array $args Should query
-     *
-     * @return ElasticaProxyQuery
      */
     public function addShould($args)
     {
         $this->boolQuery->addShould($args);
-        $this->query = new \Elastica\Query($this->boolQuery);
+        $this->query = new Query($this->boolQuery);
     }
 }

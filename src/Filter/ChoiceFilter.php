@@ -16,9 +16,9 @@ namespace Sonata\AdminSearchBundle\Filter;
 use Elastica\QueryBuilder;
 use Elastica\Util;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
+use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Sonata\AdminBundle\Form\Type\Operator\ContainsOperatorType;
-use Sonata\Form\Type\EqualType;
+use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
 
 class ChoiceFilter extends Filter
 {
@@ -46,7 +46,7 @@ class ChoiceFilter extends Filter
             $queryBuilder = new QueryBuilder();
             $innerQuery = $queryBuilder
                 ->query()
-                ->terms([$field => Util::escapeTerm($data['value'])]);
+                ->terms($field, [Util::escapeTerm($data['value'])]);
 
             if ($firstOperator === 'must') {
                 $query->addMust($innerQuery);
@@ -61,7 +61,7 @@ class ChoiceFilter extends Filter
             $queryBuilder = new QueryBuilder();
             $innerQuery = $queryBuilder
                 ->query()
-                ->terms([$field => Util::escapeTerm($data['value'])]);
+                ->terms($field, [Util::escapeTerm($data['value'])]);
 
             if ($firstOperator === 'must') {
                 $query->addMust($innerQuery);
@@ -84,8 +84,8 @@ class ChoiceFilter extends Filter
      */
     public function getRenderSettings(): array
     {
-        return [DefaultType::class, [
-            'operator_type' => EqualType::class,
+        return [FilterDataType::class, [
+            'operator_type' => EqualOperatorType::class,
             'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
             'label'         => $this->getLabel(),

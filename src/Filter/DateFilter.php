@@ -20,7 +20,7 @@ class DateFilter extends AbstractDateFilter
     /**
      * {@inheritdoc}
      */
-    protected function getFilterTypeClass()
+    protected function getFilterTypeClass(): string
     {
         return DateType::class;
     }

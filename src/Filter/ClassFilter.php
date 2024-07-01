@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Filter;
 
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
-use Sonata\Form\Type\EqualType;
+use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
+use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
@@ -34,7 +34,7 @@ class ClassFilter extends Filter
             return;
         }
 
-        $data['type'] = !isset($data['type']) ? EqualType::TYPE_IS_EQUAL : $data['type'];
+        $data['type'] = !isset($data['type']) ? EqualOperatorType::TYPE_EQUAL : $data['type'];
 
         $operator = $this->getOperator((int) $data['type']);
 
@@ -56,50 +56,29 @@ class ClassFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    public function getFieldType()
-    {
-        return $this->getOption('field_type', ChoiceType::class);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFieldOptions()
-    {
-        return $this->getOption('choices', [
-            'required'    => false,
-            'choice_list' => new ArrayChoiceList(
-                array_values($this->getOption('sub_classes')),
-                array_keys($this->getOption('sub_classes'))
-            ),
-        ]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getRenderSettings(): array
     {
-        return [DefaultType::class, [
-            'operator_type' => EqualType::class,
-            'field_type'    => $this->getFieldType(),
-            'field_options' => $this->getFieldOptions(),
+        return [FilterDataType::class, [
+            'operator_type' => EqualOperatorType::class,
+            'field_type'    => ChoiceType::class,
+            'field_options' => [
+                'required'    => false,
+                'choice_list' => new ArrayChoiceList(
+                    array_values($this->getOption('sub_classes')),
+                    array_keys($this->getOption('sub_classes'))
+                ),
+            ],
             'label'         => $this->getLabel(),
         ]];
     }
 
-    /**
-     * @param int $type
-     *
-     * @return mixed
-     */
-    private function getOperator($type)
+    private function getOperator($type): ?string
     {
         $choices = [
-            EqualType::TYPE_IS_EQUAL     => 'INSTANCE OF',
-            EqualType::TYPE_IS_NOT_EQUAL => 'NOT INSTANCE OF',
+            EqualOperatorType::TYPE_EQUAL     => 'INSTANCE OF',
+            EqualOperatorType::TYPE_NOT_EQUAL => 'NOT INSTANCE OF',
         ];
 
-        return $choices[$type] ?? false;
+        return $choices[$type] ?? null;
     }
 }

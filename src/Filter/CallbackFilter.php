@@ -15,7 +15,7 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use RuntimeException;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
+use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class CallbackFilter extends Filter
@@ -52,7 +52,7 @@ class CallbackFilter extends Filter
      */
     public function getRenderSettings(): array
     {
-        return [DefaultType::class, [
+        return [FilterDataType::class, [
             'field_type'       => $this->getFieldType(),
             'field_options'    => $this->getFieldOptions(),
             'operator_type'    => $this->getOption('operator_type'),
@@ -64,7 +64,7 @@ class CallbackFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    protected function association(ProxyQueryInterface $queryBuilder, $data)
+    protected function association(ProxyQueryInterface $queryBuilder, $value)
     {
         return [$this->getOption('alias', $queryBuilder->getRootAlias()), false];
     }

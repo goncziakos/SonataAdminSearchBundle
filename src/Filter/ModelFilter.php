@@ -17,7 +17,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use RuntimeException;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\Type\Filter\DefaultType;
+use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
 use Sonata\Form\Type\EqualType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
@@ -53,7 +55,7 @@ class ModelFilter extends Filter
             'field_name'       => false,
             'field_type'       => EntityType::class,
             'field_options'    => [],
-            'operator_type'    => EqualType::class,
+            'operator_type'    => EqualOperatorType::class,
             'operator_options' => [],
         ];
     }
@@ -90,7 +92,7 @@ class ModelFilter extends Filter
 
         $parameterName = $this->getNewParameterName($queryBuilder);
 
-        if (isset($data['type']) && $data['type'] === EqualType::TYPE_IS_NOT_EQUAL) {
+        if (isset($data['type']) && $data['type'] === EqualOperatorType::TYPE_NOT_EQUAL) {
             $this->applyWhere($queryBuilder, $queryBuilder->expr()->notIn($alias, ':' . $parameterName));
         } else {
             $this->applyWhere($queryBuilder, $queryBuilder->expr()->in($alias, ':' . $parameterName));
@@ -114,7 +116,7 @@ class ModelFilter extends Filter
 
         $parameterName = $this->getNewParameterName($queryBuilder);
 
-        if (isset($data['type']) && $data['type'] === EqualType::TYPE_IS_NOT_EQUAL) {
+        if (isset($data['type']) && $data['type'] === EqualOperatorType::TYPE_NOT_EQUAL) {
             $this->applyWhere($queryBuilder, sprintf('%s != :%s', $alias, $parameterName));
         } else {
             $this->applyWhere($queryBuilder, sprintf('%s = :%s', $alias, $parameterName));
@@ -126,13 +128,13 @@ class ModelFilter extends Filter
     /**
      * {@inheritdoc}
      */
-    protected function association(ProxyQueryInterface $queryBuilder, $data)
+    protected function association(ProxyQueryInterface $queryBuilder, $value)
     {
         $types = [
-            ClassMetadataInfo::ONE_TO_ONE,
-            ClassMetadataInfo::ONE_TO_MANY,
-            ClassMetadataInfo::MANY_TO_MANY,
-            ClassMetadataInfo::MANY_TO_ONE,
+            FieldDescriptionInterface::TYPE_ONE_TO_ONE,
+            FieldDescriptionInterface::TYPE_ONE_TO_MANY,
+            FieldDescriptionInterface::TYPE_MANY_TO_MANY,
+            FieldDescriptionInterface::TYPE_MANY_TO_ONE,
         ];
 
         if (!\in_array($this->getOption('mapping_type'), $types, true)) {

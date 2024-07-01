@@ -16,7 +16,7 @@ namespace Sonata\AdminSearchBundle\Filter;
 use DateTime;
 use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\DateTimeType;
+use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Sonata\AdminBundle\Form\Type\Operator\DateOperatorType;
 use Sonata\AdminBundle\Form\Type\Operator\DateRangeOperatorType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType as SymfonyDateTimeType;
@@ -156,6 +156,16 @@ abstract class AbstractDateFilter extends Filter
         ];
     }
 
+    final public function getFormOptions(): array
+    {
+        return [
+            'field_type' => $this->getFieldType(),
+            'field_options' => $this->getFieldOptions(),
+            'label' => $this->getLabel(),
+            'operator_type' => $this->range ? DateRangeOperatorType::class : DateOperatorType::class,
+        ];
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -183,7 +193,7 @@ abstract class AbstractDateFilter extends Filter
             \E_USER_DEPRECATED
         );
 
-        return DateTimeType::class;
+        return FilterDataType::class;
     }
 
     /**
