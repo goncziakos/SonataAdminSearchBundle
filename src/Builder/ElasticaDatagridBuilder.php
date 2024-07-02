@@ -21,9 +21,13 @@ use Sonata\AdminBundle\Datagrid\DatagridInterface;
 use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\FieldDescription\TypeGuesserInterface;
 use Sonata\AdminBundle\Filter\FilterFactoryInterface;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminSearchBundle\Datagrid\Pager;
+use Sonata\AdminSearchBundle\Filter\ModelFilter;
 use Sonata\AdminSearchBundle\Model\FinderProviderInterface;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
+use Sonata\DoctrineORMAdminBundle\Filter\ModelAutocompleteFilter;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormFactoryInterface;
 
@@ -44,32 +48,73 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
         $this->configManager = $configManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function fixFieldDescription(FieldDescriptionInterface $fieldDescription): void
     {
-        // Nothing todo
+        if ([] !== $fieldDescription->getFieldMapping()) {
+            $fieldDescription->setOption('field_mapping', $fieldDescription->getOption('field_mapping', $fieldDescription->getFieldMapping()));
+        }
+
+        if ([] !== $fieldDescription->getAssociationMapping()) {
+            $fieldDescription->setOption('association_mapping', $fieldDescription->getOption('association_mapping', $fieldDescription->getAssociationMapping()));
+        }
+
+        if ([] !== $fieldDescription->getParentAssociationMappings()) {
+            $fieldDescription->setOption('parent_association_mappings', $fieldDescription->getOption('parent_association_mappings', $fieldDescription->getParentAssociationMappings()));
+        }
+
+        $fieldDescription->setOption('field_name', $fieldDescription->getOption('field_name', $fieldDescription->getFieldName()));
+
+        if (
+            ModelFilter::class === $fieldDescription->getType() && null === $fieldDescription->getOption('field_type')
+            || EntityType::class === $fieldDescription->getOption('field_type')
+        ) {
+            $fieldDescription->setOption('field_options', array_merge([
+                'class' => $fieldDescription->getTargetModel(),
+            ], $fieldDescription->getOption('field_options', [])));
+        }
+
+        /**
+         * NEXT_MAJOR: Remove the ModelAutocompleteFilter::class check.
+         *
+         * @psalm-suppress DeprecatedClass
+         *
+         * @see https://github.com/sonata-project/SonataDoctrineORMAdminBundle/pull/1545
+         */
+        if (
+            ModelAutocompleteFilter::class === $fieldDescription->getType() && null === $fieldDescription->getOption('field_type')
+            || ModelAutocompleteType::class === $fieldDescription->getOption('field_type')
+        ) {
+            $fieldDescription->setOption('field_options', array_merge([
+                'class' => $fieldDescription->getTargetModel(),
+                'model_manager' => $fieldDescription->getAdmin()->getModelManager(),
+                'admin_code' => $fieldDescription->getAdmin()->getCode(),
+                'context' => 'filter',
+            ], $fieldDescription->getOption('field_options', [])));
+        }
+
+        if ($fieldDescription->describesAssociation()) {
+            $fieldDescription->getAdmin()->attachAdminClass($fieldDescription);
+        }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function addFilter(DatagridInterface $datagrid, ?string $type, FieldDescriptionInterface $fieldDescription): void
     {
-        // Try to wrap all types to search types
-        if ($type === null) {
+        if (null === $type) {
             $guessType = $this->guesser->guess($fieldDescription);
+            if (null === $guessType) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Cannot guess a type for the field description "%s", You MUST provide a type.',
+                    $fieldDescription->getName()
+                ));
+            }
+
+            /** @phpstan-var class-string $type */
             $type = $guessType->getType();
             $fieldDescription->setType($type);
-            $options = $guessType->getOptions();
 
-            foreach ($options as $name => $value) {
+            foreach ($guessType->getOptions() as $name => $value) {
                 if (\is_array($value)) {
-                    $fieldDescription->setOption(
-                        $name,
-                        array_merge($value, $fieldDescription->getOption($name, []))
-                    );
+                    $fieldDescription->setOption($name, array_merge($value, $fieldDescription->getOption($name, [])));
                 } else {
                     $fieldDescription->setOption($name, $fieldDescription->getOption($name, $value));
                 }
@@ -77,25 +122,15 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
         } else {
             $fieldDescription->setType($type);
         }
+
         $this->fixFieldDescription($fieldDescription);
-        // $admin = $fieldDescription->getParent();
-        // $admin->addFilterFieldDescription($fieldDescription->getName(), $fieldDescription);
 
-        $fieldDescription->mergeOption('field_options', ['required' => false]);
+        $fieldDescription->getAdmin()->addFilterFieldDescription($fieldDescription->getName(), $fieldDescription);
+
         $filter = $this->filterFactory->create($fieldDescription->getName(), $type, $fieldDescription->getOptions());
-
-        if ($filter->getLabel() !== false && !$filter->getLabel()) {
-            // $filter->setLabel(
-            //    $admin->getLabelTranslatorStrategy()->getLabel($fieldDescription->getName(), 'filter', 'label')
-            // );
-        }
-
         $datagrid->addFilter($filter);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBaseDatagrid(AdminInterface $admin, array $values = []): DatagridInterface
     {
         $pager = new Pager();
