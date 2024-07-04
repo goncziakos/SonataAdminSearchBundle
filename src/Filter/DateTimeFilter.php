@@ -17,16 +17,7 @@ use Sonata\AdminBundle\Form\Type\Filter\DateTimeType;
 
 class DateTimeFilter extends AbstractDateFilter
 {
-    /**
-     * This filter has time.
-     *
-     * @var bool
-     *
-     * NEXT_MAJOR: Remove this property
-     *
-     * @deprecated since 1.1, will be removed in 2.0.
-     */
-    protected $time = true;
+    protected bool $time = true;
 
     /**
      * {@inheritdoc}

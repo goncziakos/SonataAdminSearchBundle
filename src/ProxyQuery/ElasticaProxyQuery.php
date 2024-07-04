@@ -16,9 +16,11 @@ namespace Sonata\AdminSearchBundle\ProxyQuery;
 use Elastica\Query;
 use Elastica\Query\AbstractQuery;
 use Elastica\Query\BoolQuery;
+use Elastica\QueryBuilder;
 use Elastica\Search;
 use FOS\ElasticaBundle\Finder\TransformedFinder;
-use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use FOS\ElasticaBundle\Paginator\TransformedPaginatorAdapter;
+use Sonata\AdminSearchBundle\Datagrid\ProxyQueryInterface;
 
 class ElasticaProxyQuery implements ProxyQueryInterface
 {
@@ -30,20 +32,19 @@ class ElasticaProxyQuery implements ProxyQueryInterface
 
     protected ?int $maxResults = null;
 
-    /**
-     * @var array
-     */
-    protected $results;
+    private int $uniqueParameterId;
 
-    private $finder;
-    private $query;
-    private $boolQuery;
+    private TransformedFinder $finder;
+    private Query $query;
+    private BoolQuery $boolQuery;
+    private QueryBuilder $queryBuilder;
 
     public function __construct(TransformedFinder $finder)
     {
         $this->finder = $finder;
-        $this->query = new Query();
         $this->boolQuery = new BoolQuery();
+        $this->query = new Query($this->boolQuery);
+        $this->queryBuilder = new QueryBuilder();
     }
 
     /**
@@ -56,7 +57,7 @@ class ElasticaProxyQuery implements ProxyQueryInterface
     /**
      * {@inheritdoc}
      */
-    public function execute(array $params = [], $hydrationMode = null)
+    public function execute(array $params = [], $hydrationMode = null): TransformedPaginatorAdapter
     {
         // TODO find method names
 
@@ -155,22 +156,10 @@ class ElasticaProxyQuery implements ProxyQueryInterface
         return $this->maxResults;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getResults()
-    {
-        return $this->results;
-    }
 
-    public function getSingleScalarResult()
+    public function getUniqueParameterId(): int
     {
-        // TODO
-    }
-
-    public function getUniqueParameterId()
-    {
-        // TODO
+        return $this->uniqueParameterId++;
     }
 
     public function entityJoin(array $associationMappings)
@@ -178,26 +167,33 @@ class ElasticaProxyQuery implements ProxyQueryInterface
         // TODO
     }
 
-    public function addMust($args)
+    public function addMust($args): void
     {
         $this->boolQuery->addMust($args);
-        $this->query = new Query($this->boolQuery);
     }
 
-    public function addMustNot($args)
-    {
-        $this->boolQuery->addMustNot($args);
-        $this->query = new Query($this->boolQuery);
-    }
-
-    /**
-     * Add should part to query.
-     *
-     * @param AbstractQuery|array $args Should query
-     */
-    public function addShould($args)
+    public function addShould(AbstractQuery $args): void
     {
         $this->boolQuery->addShould($args);
-        $this->query = new Query($this->boolQuery);
+    }
+
+    public function addMustNot(AbstractQuery $args): void
+    {
+        $this->boolQuery->addMustNot($args);
+    }
+
+    public function addFilter(AbstractQuery $args): void
+    {
+        $this->boolQuery->addFilter($args);
+    }
+
+    public function getQueryBuilder(): QueryBuilder
+    {
+        return $this->queryBuilder;
+    }
+
+    public function getElasticaQuery(): Query
+    {
+        return $this->query;
     }
 }

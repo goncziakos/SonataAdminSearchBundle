@@ -13,61 +13,42 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Filter;
 
-use Elastica\QueryBuilder;
 use Elastica\Util;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Sonata\AdminBundle\Form\Type\Operator\ContainsOperatorType;
 use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
+use Sonata\AdminBundle\Form\Type\Operator\StringOperatorType;
 
 class ChoiceFilter extends Filter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $query, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
-        if (!$data || !\is_array($data) || !\array_key_exists('type', $data) || !\array_key_exists('value', $data)) {
+        if (!$data->hasValue()) {
             return;
         }
 
-        $data['type'] = !isset($data['type']) ? ContainsOperatorType::TYPE_CONTAINS : $data['type'];
-        [$firstOperator, $secondOperator] = $this->getOperators((int) $data['type']);
+        $type = $data->getType() ?? StringOperatorType::TYPE_CONTAINS;
+        [$firstOperator, $secondOperator] = $this->getOperators((int) $type);
 
-        if (\is_array($data['value'])) {
-            if (\count($data['value']) === 0) {
+        if (\is_array($data->getValue())) {
+            if (\count($data->getValue()) === 0) {
                 return;
-            }
-
-            if (\in_array('all', $data['value'], true)) {
-                return;
-            }
-
-            $queryBuilder = new QueryBuilder();
-            $innerQuery = $queryBuilder
-                ->query()
-                ->terms($field, [Util::escapeTerm($data['value'])]);
-
-            if ($firstOperator === 'must') {
-                $query->addMust($innerQuery);
-            } else {
-                $query->addMustNot($innerQuery);
             }
         } else {
-            if ($data['value'] === '' || $data['value'] === null || $data['value'] === false || $data['value'] === 'all') {
+            if ($data->getValue() === '' || $data->getValue() === null || $data->getValue() === false || $data->getValue() === 'all') {
                 return;
             }
-
-            $queryBuilder = new QueryBuilder();
-            $innerQuery = $queryBuilder
-                ->query()
-                ->terms($field, [Util::escapeTerm($data['value'])]);
-
-            if ($firstOperator === 'must') {
-                $query->addMust($innerQuery);
-            } else {
-                $query->addMustNot($innerQuery);
-            }
+        }
+        $queryBuilder = $query->getQueryBuilder();
+        $innerQuery = $queryBuilder
+            ->query()
+            ->terms($field, [Util::escapeTerm($data->getValue())]);
+        if ($firstOperator === 'must') {
+            $query->addMust($innerQuery);
+        } else {
+            $query->addMustNot($innerQuery);
         }
     }
 
@@ -92,18 +73,21 @@ class ChoiceFilter extends Filter
         ]];
     }
 
-    /**
-     * @param string $type
-     *
-     * @return bool
-     */
-    private function getOperators($type)
+    private function getOperators($type): array
     {
         $choices = [
             ContainsOperatorType::TYPE_CONTAINS     => ['must', 'terms'],
             ContainsOperatorType::TYPE_NOT_CONTAINS => ['must_not', 'terms'],
         ];
 
-        return $choices[$type] ?? false;
+        if (!isset($choices[$type])) {
+            throw new \OutOfRangeException(sprintf(
+                'The type "%s" is not supported, allowed one are "%s".',
+                $type,
+                implode('", "', array_keys($choices))
+            ));
+        }
+
+        return $choices[$type];
     }
 }

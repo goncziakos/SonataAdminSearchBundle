@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Filter;
 
 use DateTime;
-use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Sonata\AdminBundle\Form\Type\Operator\DateOperatorType;
 use Sonata\AdminBundle\Form\Type\Operator\DateRangeOperatorType;
@@ -23,40 +23,18 @@ use Symfony\Component\Form\Extension\Core\Type\DateTimeType as SymfonyDateTimeTy
 
 abstract class AbstractDateFilter extends Filter
 {
-    /**
-     * Flag indicating that filter will have range.
-     *
-     * @var bool
-     *
-     * NEXT_MAJOR: Remove this property
-     *
-     * @deprecated since 1.1, will be removed in 2.0.
-     */
-    protected $range = false;
+    protected bool $range = false;
 
-    /**
-     * Flag indicating that filter will filter by datetime instead by date.
-     *
-     * @var bool
-     *
-     * NEXT_MAJOR: Remove this property
-     *
-     * @deprecated since 1.1, will be removed in 2.0.
-     */
-    protected $time = false;
+    protected bool $time = false;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $query, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
-        // check data sanity
-        if (!$data || !\is_array($data) || !\array_key_exists('value', $data)) {
+        if (!$data->hasValue()) {
             return;
         }
 
         $format = \array_key_exists('format', $this->getFieldOptions()) ? $this->getFieldOptions()['format'] : 'c';
-        $queryBuilder = new QueryBuilder();
+        $queryBuilder = $query->getQueryBuilder();
 
         // NEXT_MAJOR: Use ($this instanceof RangeFilterInterface) for if statement, remove deprecated range.
         if (!($range = $this instanceof RangeFilterInterface)) {
@@ -74,48 +52,51 @@ abstract class AbstractDateFilter extends Filter
 
         if ($range) {
             // additional data check for ranged items
-            if (!\array_key_exists('start', $data['value']) || !\array_key_exists('end', $data['value'])) {
+            if (!\array_key_exists('start', $data->getValue()) || !\array_key_exists('end', $data->getValue())) {
                 return;
             }
 
-            if (!$data['value']['start'] || !$data['value']['end']) {
+            if (!$data->getValue()['start'] || !$data->getValue()['end']) {
                 return;
             }
 
             // transform types
             if ($this->getOption('input_type') === 'timestamp') {
-                $data['value']['start'] = $data['value']['start'] instanceof DateTime ? $data['value']['start']->getTimestamp() : 0;
-                $data['value']['end'] = $data['value']['end'] instanceof DateTime ? $data['value']['end']->getTimestamp() : 0;
+                $data->getValue()['start'] = $data->getValue()['start'] instanceof DateTime ? $data->getValue()['start']->getTimestamp() : 0;
+                $data->getValue()['end'] = $data->getValue()['end'] instanceof DateTime ? $data->getValue()['end']->getTimestamp() : 0;
             }
 
-            // default type for range filter
-            $data['type'] = !isset($data['type']) || !is_numeric($data['type']) ? DateRangeOperatorType::TYPE_BETWEEN : $data['type'];
+            $type = $data->getType() ?: DateRangeOperatorType::TYPE_BETWEEN;
 
             $innerQuery = $queryBuilder
                 ->query()
                 ->range($field, [
-                    'gte' => $data['value']['start']->format($format),
-                    'lte' => $data['value']['end']->format($format),
+                    'gte' => $data->getValue()['start']->format($format),
+                    'lte' => $data->getValue()['end']->format($format),
                 ]);
 
-            if ($data['type'] === DateRangeOperatorType::TYPE_NOT_BETWEEN) {
+            if ($type === DateRangeOperatorType::TYPE_NOT_BETWEEN) {
                 $query->addMustNot($innerQuery);
             } else {
                 $query->addMust($innerQuery);
             }
         } else {
-            if (!$data['value']) {
+            if (!$data->getValue()) {
                 return;
             }
 
             // default type for simple filter
-            $data['type'] = !isset($data['type']) || !is_numeric($data['type']) ? DateOperatorType::TYPE_GREATER_EQUAL : $data['type'];
+            $type = $data->getType() ?: DateOperatorType::TYPE_GREATER_EQUAL;
             // just find an operator and apply query
-            $operator = $this->getOperator($data['type']);
+            $operator = $this->getOperator($type);
 
+            $value = $data->getValue();
             // transform types
             if ($this->getOption('input_type') === 'timestamp') {
-                $data['value'] = $data['value'] instanceof DateTime ? $data['value']->getTimestamp() : 0;
+                $value = $value instanceof DateTime ? $value->getTimestamp() : 0;
+            }
+            if($value instanceof DateTime ) {
+                $value = $value->format($format);
             }
 
             // null / not null only check for col
@@ -127,14 +108,14 @@ abstract class AbstractDateFilter extends Filter
                 $innerQuery = $queryBuilder
                     ->query()
                     ->range($field, [
-                        'gte' => $data['value']->format($format),
-                        'lte' => $data['value']->format($format),
+                        'gte' => $value,
+                        'lte' => $value,
                     ]);
             } else {
                 $innerQuery = $queryBuilder
                     ->query()
                     ->range($field, [
-                        $operator => $data['value']->format($format),
+                        $operator => $value,
                     ]);
             }
 
@@ -213,8 +194,6 @@ abstract class AbstractDateFilter extends Filter
             DateOperatorType::TYPE_GREATER_THAN  => 'gt',
             DateOperatorType::TYPE_LESS_EQUAL    => 'lte',
             DateOperatorType::TYPE_LESS_THAN     => 'lt',
-            // DateOperatorType::TYPE_NULL => 'missing',
-            // DateOperatorType::TYPE_NOT_NULL => 'exists',
         ];
 
         return $choices[$type] ?? '=';

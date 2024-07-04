@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sonata\AdminSearchBundle\Filter;
 
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Sonata\AdminBundle\Form\Type\Operator\EqualOperatorType;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
@@ -21,16 +22,9 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class ClassFilter extends Filter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $queryBuilder, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
-        if (!$data || !\is_array($data) || !\array_key_exists('value', $data)) {
-            return;
-        }
-
-        if ($data['value'] === '') {
+        if (!$data->hasValue() || $data->getValue() === '') {
             return;
         }
 
@@ -42,7 +36,7 @@ class ClassFilter extends Filter
             $operator = 'INSTANCE OF';
         }
 
-        $this->applyWhere($queryBuilder, sprintf('%s %s %s', $alias, $operator, $data['value']));
+        $this->applyWhere($queryBuilder, sprintf('%s %s %s', $alias, $operator, $data->getValue()));
     }
 
     /**
@@ -79,6 +73,14 @@ class ClassFilter extends Filter
             EqualOperatorType::TYPE_NOT_EQUAL => 'NOT INSTANCE OF',
         ];
 
-        return $choices[$type] ?? null;
+        if (!isset($choices[$type])) {
+            throw new \OutOfRangeException(sprintf(
+                'The type "%s" is not supported, allowed one are "%s".',
+                $type,
+                implode('", "', array_keys($choices))
+            ));
+        }
+
+        return $choices[$type];
     }
 }

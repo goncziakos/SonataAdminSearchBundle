@@ -54,6 +54,6 @@ class DatagridBuilderInjectionCompilerPass implements CompilerPassInterface
 
         // Update definition of AdminSearchBundle Datagrid Builder
         $definition = $container->getDefinition('sonata.admin.search.datagrid_builder');
-        $definition->replaceArgument(1, $originalAdminDatagridBuilders);
+        $definition->replaceArgument(2, $originalAdminDatagridBuilders);
     }
 }

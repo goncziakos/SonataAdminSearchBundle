@@ -13,11 +13,12 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Datagrid;
 
+use FOS\ElasticaBundle\Paginator\TransformedPaginatorAdapter;
 use Sonata\AdminBundle\Datagrid\Pager as BasePager;
 
 class Pager extends BasePager
 {
-    private $paginator;
+    private ?TransformedPaginatorAdapter $paginator = null;
 
     /**
      * {@inheritdoc}
@@ -53,7 +54,7 @@ class Pager extends BasePager
         return $this->getPaginator()->getTotalHits();
     }
 
-    protected function getPaginator()
+    protected function getPaginator(): TransformedPaginatorAdapter
     {
         if ($this->paginator === null) {
             $this->paginator = $this->getQuery()->execute();

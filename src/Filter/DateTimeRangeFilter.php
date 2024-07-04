@@ -17,32 +17,11 @@ use Sonata\AdminBundle\Form\Type\Filter\DateTimeRangeType;
 
 class DateTimeRangeFilter extends AbstractDateFilter implements RangeFilterInterface
 {
-    /**
-     * This Filter allows filtering by time.
-     *
-     * @var bool
-     *
-     * NEXT_MAJOR: Remove this property
-     *
-     * @deprecated since 1.1, will be removed in 2.0.
-     */
-    protected $time = true;
+    protected bool $time = true;
 
-    /**
-     * This is a range filter.
-     *
-     * @var bool
-     *
-     * NEXT_MAJOR: Remove this property
-     *
-     * @deprecated since 1.1, will be removed in 2.0.
-     */
-    protected $range = true;
+    protected bool $range = true;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getFilterTypeClass()
+    protected function getFilterTypeClass(): string
     {
         return DateTimeRangeType::class;
     }

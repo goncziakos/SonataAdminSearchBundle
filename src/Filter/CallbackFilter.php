@@ -15,15 +15,13 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use RuntimeException;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\AdminBundle\Form\Type\Filter\FilterDataType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class CallbackFilter extends Filter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $query, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
         if (!\is_callable($this->getOption('callback'))) {
             throw new RuntimeException(
@@ -31,12 +29,9 @@ class CallbackFilter extends Filter
             );
         }
 
-        $this->active = \call_user_func($this->getOption('callback'), $query, $alias, $field, $data);
+        $this->active = \call_user_func($this->getOption('callback'), $query, $field, $data);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultOptions(): array
     {
         return [
@@ -47,9 +42,6 @@ class CallbackFilter extends Filter
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getRenderSettings(): array
     {
         return [FilterDataType::class, [
@@ -59,13 +51,5 @@ class CallbackFilter extends Filter
             'operator_options' => $this->getOption('operator_options'),
             'label'            => $this->getLabel(),
         ]];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function association(ProxyQueryInterface $queryBuilder, $value)
-    {
-        return [$this->getOption('alias', $queryBuilder->getRootAlias()), false];
     }
 }

@@ -13,79 +13,64 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Filter;
 
-use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
-use Sonata\AdminBundle\Form\Type\Filter\NumberType;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\AdminBundle\Form\Type\Operator\NumberOperatorType;
 
 class NumberFilter extends Filter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $query, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
-        if (!$data || !\is_array($data) || !\array_key_exists('value', $data) || !is_numeric($data['value'])) {
+        if (!$data->hasValue()) {
             return;
         }
 
-        $type = $data['type'] ?? false;
+        $type = $data->getType() ?? NumberOperatorType::TYPE_EQUAL ;
         $operator = $this->getOperator($type);
 
-        $queryBuilder = new QueryBuilder();
+        $queryBuilder = $query->getQueryBuilder();
 
-        if ($operator === false) {
+        if ($operator === null) {
             // Match query to get equality
             $innerQuery = $queryBuilder
                 ->query()
-                ->match($field, $data['value']);
+                ->match($field, $data->getValue());
         } else {
             // Range query
             $innerQuery = $queryBuilder
                 ->query()
                 ->range($field, [
-                    $operator => $data['value'],
+                    $operator => $data->getValue(),
                 ]);
         }
 
         $query->addMust($innerQuery);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultOptions(): array
     {
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getRenderSettings(): array
+    public function getFormOptions(): array
     {
-        return [NumberType::class, [
+        return [
             'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
             'label'         => $this->getLabel(),
-        ]];
+        ];
     }
 
-    /**
-     * @param string $type
-     *
-     * @return bool
-     */
-    private function getOperator($type)
+    private function getOperator(int $type): ?string
     {
         $choices = [
-            NumberOperatorType::TYPE_EQUAL         => false,
+            NumberOperatorType::TYPE_EQUAL         => null,
             NumberOperatorType::TYPE_GREATER_EQUAL => 'gte',
             NumberOperatorType::TYPE_GREATER_THAN  => 'gt',
             NumberOperatorType::TYPE_LESS_EQUAL    => 'lte',
             NumberOperatorType::TYPE_LESS_THAN     => 'lt',
         ];
 
-        return $choices[$type] ?? false;
+        return $choices[$type];
     }
 }

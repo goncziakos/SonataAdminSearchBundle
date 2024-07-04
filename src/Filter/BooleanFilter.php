@@ -15,23 +15,21 @@ namespace Sonata\AdminSearchBundle\Filter;
 
 use Elastica\QueryBuilder;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Sonata\AdminBundle\Filter\Model\FilterData;
 use Sonata\Form\Type\BooleanType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class BooleanFilter extends Filter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function filter(ProxyQueryInterface $query, $alias, $field, $data)
+    public function filter(ProxyQueryInterface $query, string $field, FilterData $data): void
     {
-        if (!$data || !\is_array($data) || !\array_key_exists('type', $data) || !\array_key_exists('value', $data)) {
+        if (!$data->hasValue()) {
             return;
         }
 
-        if (\is_array($data['value'])) {
+        if (\is_array($data->getValue())) {
             $values = [];
-            foreach ($data['value'] as $v) {
+            foreach ($data->getValue() as $v) {
                 if (!\in_array($v, [BooleanType::TYPE_NO, BooleanType::TYPE_YES], true)) {
                     continue;
                 }
@@ -43,31 +41,28 @@ class BooleanFilter extends Filter
                 return;
             }
 
-            $queryBuilder = new QueryBuilder();
+            $queryBuilder = $query->getQueryBuilder();
             $innerQuery = $queryBuilder
                 ->query()
                 ->terms($field, $values);
 
             $query->addMust($innerQuery);
         } else {
-            if (!\in_array($data['value'], [BooleanType::TYPE_NO, BooleanType::TYPE_YES], true)) {
+            if (!\in_array($data->getValue(), [BooleanType::TYPE_NO, BooleanType::TYPE_YES], true)) {
                 return;
             }
 
-            $queryBuilder = new QueryBuilder();
+            $queryBuilder = $query->getQueryBuilder();
             $innerQuery = $queryBuilder
                 ->query()
                 ->term([
-                    $field => ($data['value'] === BooleanType::TYPE_YES),
+                    $field => ($data->getValue() === BooleanType::TYPE_YES),
                 ]);
 
             $query->addMust($innerQuery);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultOptions(): array
     {
         return [];

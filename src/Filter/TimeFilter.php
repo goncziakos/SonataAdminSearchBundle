@@ -25,5 +25,5 @@ class TimeFilter extends AbstractDateFilter
      *
      * @var bool
      */
-    protected $time = true;
+    protected bool $time = true;
 }

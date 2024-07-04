@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sonata\AdminSearchBundle\Builder;
 
-use FOS\ElasticaBundle\Configuration\ManagerInterface;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Builder\DatagridBuilderInterface;
 use Sonata\AdminBundle\Datagrid\Datagrid;
@@ -24,28 +23,22 @@ use Sonata\AdminBundle\Filter\FilterFactoryInterface;
 use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminSearchBundle\Datagrid\Pager;
 use Sonata\AdminSearchBundle\Filter\ModelFilter;
+use Sonata\DoctrineORMAdminBundle\Filter\ModelFilter as ORMModelFilter;
 use Sonata\AdminSearchBundle\Model\FinderProviderInterface;
 use Sonata\AdminSearchBundle\ProxyQuery\ElasticaProxyQuery;
-use Sonata\DoctrineORMAdminBundle\Filter\ModelAutocompleteFilter;
+use Sonata\DoctrineORMAdminBundle\Filter\ModelAutocompleteFilter as ORMModelAutocompleteFilter;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormFactoryInterface;
 
 class ElasticaDatagridBuilder implements DatagridBuilderInterface
 {
-    private $finderProvider;
-    private $formFactory;
-    private $filterFactory;
-    private $guesser;
-    private $configManager;
-
-    public function __construct(FormFactoryInterface $formFactory, FilterFactoryInterface $filterFactory, TypeGuesserInterface $guesser, FinderProviderInterface $finderProvider, ManagerInterface $configManager)
-    {
-        $this->formFactory = $formFactory;
-        $this->filterFactory = $filterFactory;
-        $this->guesser = $guesser;
-        $this->finderProvider = $finderProvider;
-        $this->configManager = $configManager;
+    public function __construct(
+        private FormFactoryInterface $formFactory,
+        private FilterFactoryInterface $filterFactory,
+        private TypeGuesserInterface $guesser,
+        private FinderProviderInterface $finderProvider
+    ) {
     }
 
     public function fixFieldDescription(FieldDescriptionInterface $fieldDescription): void
@@ -65,8 +58,8 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
         $fieldDescription->setOption('field_name', $fieldDescription->getOption('field_name', $fieldDescription->getFieldName()));
 
         if (
-            ModelFilter::class === $fieldDescription->getType() && null === $fieldDescription->getOption('field_type')
-            || EntityType::class === $fieldDescription->getOption('field_type')
+            (ModelFilter::class === $fieldDescription->getType() || ORMModelFilter::class === $fieldDescription->getType()) &&
+            null === $fieldDescription->getOption('field_type') || EntityType::class === $fieldDescription->getOption('field_type')
         ) {
             $fieldDescription->setOption('field_options', array_merge([
                 'class' => $fieldDescription->getTargetModel(),
@@ -80,9 +73,8 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
          *
          * @see https://github.com/sonata-project/SonataDoctrineORMAdminBundle/pull/1545
          */
-        if (
-            ModelAutocompleteFilter::class === $fieldDescription->getType() && null === $fieldDescription->getOption('field_type')
-            || ModelAutocompleteType::class === $fieldDescription->getOption('field_type')
+        if ((ORMModelAutocompleteFilter::class === $fieldDescription->getType())
+            && (null === $fieldDescription->getOption('field_type') || ModelAutocompleteType::class === $fieldDescription->getOption('field_type'))
         ) {
             $fieldDescription->setOption('field_options', array_merge([
                 'class' => $fieldDescription->getTargetModel(),
@@ -115,9 +107,9 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
             foreach ($guessType->getOptions() as $name => $value) {
                 if (\is_array($value)) {
                     $fieldDescription->setOption($name, array_merge($value, $fieldDescription->getOption($name, [])));
-                } else {
-                    $fieldDescription->setOption($name, $fieldDescription->getOption($name, $value));
+                    continue;
                 }
+                $fieldDescription->setOption($name, $fieldDescription->getOption($name, $value));
             }
         } else {
             $fieldDescription->setType($type);
@@ -150,9 +142,7 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
         // if not, that means $admin->createQuery has been overriden by the user and already returns
         // an ElasticaProxyQuery object
         if (!$proxyQuery instanceof ElasticaProxyQuery) {
-            if ($this->isSmart($admin, $values)) {
-                $proxyQuery = new ElasticaProxyQuery($this->finderProvider->getFinderByAdmin($admin));
-            }
+            $proxyQuery = new ElasticaProxyQuery($this->finderProvider->getFinderByAdmin($admin));
         }
 
         return new Datagrid(
@@ -165,74 +155,11 @@ class ElasticaDatagridBuilder implements DatagridBuilderInterface
     }
 
     /**
-     * Returns true if this datagrid builder can process these values.
-     *
-     * @param AdminInterface $admin
-     * @param array          $values
+     * {@inheritdoc}
      */
-    public function isSmart(AdminInterface $admin, array $values = [])
+    public function isSmart(AdminInterface $admin, array $values = []): bool
     {
-        // Все поля должны быть замаплены в эластик, по этому не переживаем об этом
+        // All fields must be mapped in elastic, so we don’t worry about it
         return true;
-        // first : validate if elastica is asked in the configuration for this action
-        $logicalControllerName = $admin->getRequest()->attributes->get('_controller');
-        $currentAction = explode(':', $logicalControllerName);
-        // remove Action from 'listAction'
-        $currentAction = substr(end($currentAction), 0, -\strlen('Action'));
-        // in case of batch|export action, no need to elasticsearch
-        if (!\in_array($currentAction, $this->finderProvider->getActionsByAdmin($admin), true)) {
-            return false;
-        }
-
-        // Get mapped field names
-        $finderId = $this->finderProvider->getFinderIdByAdmin($admin);
-
-        // Assume that finder id is composed like this 'fos_elastica.finder.<index name>.<type name>
-        [$indexName] = \array_slice(explode('.', $finderId), 2);
-        $typeConfiguration = $this->configManager->getIndexConfiguration($indexName);
-        $mapping = $typeConfiguration->getMapping();
-        $mappedFieldNames = array_keys($mapping['properties']);
-
-        // Compare to the fields on wich the search apply
-        $smart = true;
-
-        foreach ($values as $key => $value) {
-            if (!\is_array($value) || !isset($value['value'])) {
-                // This is not a filter field
-                continue;
-            }
-
-            if (!$value['value']) {
-                // No value set on the filter field
-                continue;
-            }
-
-            if (!\in_array($key, $mappedFieldNames, true)) {
-                /*
-                 * We are in the case where a field is used as filter
-                 * without being mapped in elastic search.
-                 * An ugly case would be to have a custom field used in the filter
-                 * without mapping in the model, we need to control that
-                 */
-                $ret = $admin->getModelManager()->getParentMetadataForProperty(
-                    $admin->getClass(),
-                    $key,
-                    $admin->getModelManager()
-                );
-
-                [$metadata, $propertyName, $parentAssociationMappings] = $ret;
-                // Case if a filter is used in the filter but not linked to the ModelManager ("mapped" = false ) case
-                if (!$metadata->hasField($key)) {
-                    break;
-                }
-                // This filter field is not mapped in elasticsearch
-                // so we cannot use elasticsearch
-                $smart = false;
-
-                break;
-            }
-        }
-
-        return $smart;
     }
 }
