@@ -44,12 +44,17 @@ class CallbackFilter extends Filter
 
     public function getRenderSettings(): array
     {
-        return [FilterDataType::class, [
+        return [FilterDataType::class, $this->getFormOptions()];
+    }
+
+    public function getFormOptions(): array
+    {
+        return [
             'field_type'       => $this->getFieldType(),
             'field_options'    => $this->getFieldOptions(),
             'operator_type'    => $this->getOption('operator_type'),
             'operator_options' => $this->getOption('operator_options'),
             'label'            => $this->getLabel(),
-        ]];
+        ];
     }
 }

@@ -65,12 +65,17 @@ class ChoiceFilter extends Filter
      */
     public function getRenderSettings(): array
     {
-        return [FilterDataType::class, [
+        return [FilterDataType::class, $this->getFormOptions()];
+    }
+
+    public function getFormOptions(): array
+    {
+        return [
             'operator_type' => EqualOperatorType::class,
             'field_type'    => $this->getFieldType(),
             'field_options' => $this->getFieldOptions(),
             'label'         => $this->getLabel(),
-        ]];
+        ];
     }
 
     private function getOperators($type): array
